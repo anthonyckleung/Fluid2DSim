@@ -26,7 +26,7 @@ public:
 
 private:
 	GLuint			m_Width, m_Height;
-	GLfloat			m_dt;
+	GLfloat			m_dt;               // Time step
 };
 
 #endif // SIMULATION_H

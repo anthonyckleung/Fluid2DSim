@@ -9,8 +9,8 @@
 
 
 const char  * APP_TITLE     = "FluidSim";
-const GLuint  SCREEN_WIDTH  = 500;
-const GLuint  SCREEN_HEIGHT = 500;
+const GLuint  SCREEN_WIDTH  = 800;
+const GLuint  SCREEN_HEIGHT = 600;
 GLFWwindow	* gWindow       = NULL; //pointer to a window
 
 bool		 initOpenGL();
@@ -24,20 +24,34 @@ int main()
 		return -1;
 	}
 
-	// Initialize Simulation
-	simulation.Initialize();
+	// OpenGL configuration
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Initialize Simulation
+	std::cout << "Initializing simulation..." << std::endl;
+	simulation.Initialize();
+	simulation.m_State = SIM_ACTIVE;
+	std::cout << "Simulation Initialized..." << std::endl;
 	// GL Loop
 	while (!glfwWindowShouldClose(gWindow))
 	{
 		// Poll and process events
 		glfwPollEvents();
 
-		// Clear the screen (color and depth buffers)
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Clear the screen (color and depth buffers)
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		simulation.Render();
 		glfwSwapBuffers(gWindow); //This should avoid flickering
 	}
+	// Delete all resources as loaded using the resource manager
+	ResourceManager::Clear();
+
+
 	glfwTerminate();//Shut down GLFW
 
 	return 0;
@@ -67,6 +81,7 @@ bool initOpenGL()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);//Force to call modern methods (i.e., cannot call old methods)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	gWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, APP_TITLE, NULL, NULL);
 

@@ -13,7 +13,7 @@ enum SimState {
 class Simulation
 {
 public:
-	Simulation(GLuint width, GLuint height);
+	Simulation(int width, int height);
 	~Simulation();
 
 	SimState		m_State;
@@ -25,8 +25,9 @@ public:
 	void Render();
 
 private:
-	GLuint			m_Width, m_Height;
+	int			m_Width, m_Height;
 	GLfloat			m_dt;               // Time step
+	//StableFluidsSys fluidSys;
 };
 
 #endif // SIMULATION_H

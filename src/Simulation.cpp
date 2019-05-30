@@ -1,12 +1,13 @@
-
+#include <memory>
 #include "ResourceManager.h"
 #include "SceneRenderer.h"
+#include "StableFluidsSys.h"
 #include "Simulation.h"
 
 SceneRenderer *Renderer;
 
-Simulation::Simulation(GLuint width, GLuint height)
-				: m_State(SIM_ACTIVE), m_Width(width), m_Height(height)
+Simulation::Simulation(int width, int height)
+	: m_State(SIM_ACTIVE), m_Width(width), m_Height(height)
 {
 }
 
@@ -17,6 +18,7 @@ Simulation::~Simulation()
 
 void Simulation::Initialize()
 {
+	StableFluidsSys *fluidsys = new StableFluidsSys(m_Height, m_Width);
 	// Load shaders
 	ResourceManager::LoadShader("src/shaders/particle.vert", "src/shaders/particle.frag", nullptr, "particle");
 	// Configure shaders
@@ -41,6 +43,6 @@ void Simulation::Update(GLfloat dt)
 
 void Simulation::Render()
 {
-	Renderer->DrawParticle(ResourceManager::GetTexture("face"), glm::vec2(200, 200), 
-		                   glm::vec2(300, 400), 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	Renderer->DrawScene(ResourceManager::GetTexture("face"), glm::vec2(0, 200), 
+		                   glm::vec2(400, 400), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 }

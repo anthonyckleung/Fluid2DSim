@@ -4,20 +4,31 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
+#include "Grid2D.hpp"
 #include "Simulation.h"
 #include "ResourceManager.h"
 
 
-const char  * APP_TITLE     = "FluidSim";
-const GLuint  SCREEN_WIDTH  = 800;
-const GLuint  SCREEN_HEIGHT = 600;
-GLFWwindow	* gWindow       = NULL; //pointer to a window
 
-bool		 initOpenGL();
-Simulation   simulation(SCREEN_WIDTH, SCREEN_HEIGHT);
+const char  * APP_TITLE     = "FluidSim";
+const GLuint  SCREEN_WIDTH  = 400;
+const GLuint  SCREEN_HEIGHT = 400;
+GLFWwindow	* gWindow       = NULL; //pointer to a window
+Simulation    simulation(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+bool		  initOpenGL();
+
+// Test out grid template
+Grid2D<double>  gridtemp = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH, 2.f);
+Grid2D<double>  gridtemp2 = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH, 2.f);
 
 int main()
 {
+	std::cout << gridtemp(1,3) << std::endl;
+	std::cout << gridtemp(1, 3) + gridtemp2(4,2) << std::endl;
+	//gridtemp.clear();
+	//std::cout << gridtemp.data() << std::endl;
+	//std::cout << gridtemp.data() + 1* gridtemp.rows() *gridtemp.cols() << std::endl;
 	if (!initOpenGL())
 	{
 		std::cerr << "GLFW initialization failed" << std::endl;
@@ -35,15 +46,15 @@ int main()
 	simulation.Initialize();
 	simulation.m_State = SIM_ACTIVE;
 	std::cout << "Simulation Initialized..." << std::endl;
-	// GL Loop
+
+	// Render Loop
 	while (!glfwWindowShouldClose(gWindow))
 	{
 		// Poll and process events
 		glfwPollEvents();
 
-
 		// Clear the screen (color and depth buffers)
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		simulation.Render();
 		glfwSwapBuffers(gWindow); //This should avoid flickering
@@ -63,7 +74,6 @@ void glfw_onKey(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
 }
 
 

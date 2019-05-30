@@ -24,13 +24,18 @@
     <ClCompile Include="src\ResourceManager.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Simulation.cpp" />
+    <ClCompile Include="src\StableFluidsSys.cpp" />
     <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Grid2D.hpp" />
+    <ClInclude Include="src\MathDefines.h" />
+    <ClInclude Include="src\MathUtilities.h" />
     <ClInclude Include="src\SceneRenderer.h" />
     <ClInclude Include="src\ResourceManager.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Simulation.h" />
+    <ClInclude Include="src\StableFluidsSys.h" />
     <ClInclude Include="src\Texture.h" />
   </ItemGroup>
   <ItemGroup>

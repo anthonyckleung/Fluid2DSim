@@ -2,8 +2,6 @@
 #include <sstream>
 #include <fstream>
 
-//#define STB_IMAGE_IMPLEMENTATION //Need it for STB_IMAGE
-//#include "stb_image/stb_image.h"
 #include "SOIL.h"
 
 #include "ResourceManager.h"
@@ -31,7 +29,6 @@ Texture ResourceManager::LoadTexture(const GLchar *file, GLboolean alpha, std::s
 }
 
 
-
 Texture &ResourceManager::GetTexture(std::string name)
 {
     return Textures[name];
@@ -39,6 +36,8 @@ Texture &ResourceManager::GetTexture(std::string name)
 
 void ResourceManager::Clear()
 {
+	for (auto iter : Shaders) { glDeleteProgram(iter.second.m_ID); }
+	//for (auto iter : Textures) { glDeleteTextures(Texture::Textures, &iter.second.m_IDs[0]) };
 }
 
 Shader ResourceManager::loadShaderFromFile(const GLchar * vShaderFile, const GLchar * fShaderFile, const GLchar * gShaderFile)

@@ -16,7 +16,7 @@ public:
 	void Bind() const;
 
 	// Holds the ID of the texture object, used for all texture operations to reference to this particlar texture
-	GLuint   m_ID;
+	GLuint   m_IDs;
 	// Texture image dimensions
 	GLuint   m_Width, m_Height; // Width and height of loaded image in pixels
 	// Texture Format

@@ -17,15 +17,22 @@ GLFWwindow	* gWindow       = NULL; //pointer to a window
 Simulation    simulation(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 bool		  initOpenGL();
+ArrayXs  x(3, 3);
+
+
 
 // Test out grid template
-Grid2D<double>  gridtemp = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH, 2.f);
-Grid2D<double>  gridtemp2 = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH, 2.f);
+//Grid2D<double>  gridtemp = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH);
+//Grid2D<double>  gridtemp2 = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH);
 
 int main()
 {
-	std::cout << gridtemp(1,3) << std::endl;
-	std::cout << gridtemp(1, 3) + gridtemp2(4,2) << std::endl;
+	x << 1, 2, 3,
+		5, 4, 16,
+		7, 8, 9;
+	//std::cout << x(1,2) << std::endl;
+	//std::cout << gridtemp(1,3) << std::endl;
+	//std::cout << gridtemp(1, 3) + gridtemp2(4,2) << std::endl;
 	//gridtemp.clear();
 	//std::cout << gridtemp.data() << std::endl;
 	//std::cout << gridtemp.data() + 1* gridtemp.rows() *gridtemp.cols() << std::endl;
@@ -54,9 +61,10 @@ int main()
 		glfwPollEvents();
 
 		// Clear the screen (color and depth buffers)
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 		simulation.Render();
+
 		glfwSwapBuffers(gWindow); //This should avoid flickering
 	}
 	// Delete all resources as loaded using the resource manager

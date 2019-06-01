@@ -16,7 +16,7 @@ public:
 	Simulation(int width, int height);
 	~Simulation();
 
-	SimState		m_State;
+	SimState   m_State;
 
 	// Initialize simulation resources
 	void Initialize();
@@ -25,9 +25,8 @@ public:
 	void Render();
 
 private:
-	int			m_Width, m_Height;
-	GLfloat			m_dt;               // Time step
-	//StableFluidsSys fluidSys;
+	int        m_Width, m_Height;
+	GLfloat	   m_dt;               // Time step
 };
 
 #endif // SIMULATION_H

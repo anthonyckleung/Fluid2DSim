@@ -8,14 +8,22 @@ class StableFluidsSys
 {
 public:
 	StableFluidsSys(int rows, int cols,
-		            const double& diff = 0.0001, const double& visc = 0.00000001,
+		            const float& diff = 0.0001, const float& visc = 0.00000001,
 		            bool use_advect = true, bool use_project = true);
 
 	~StableFluidsSys();
 
 	// Solve the system forward in time by dt
-	void StepSystem(const double & dt);
+	void StepSystem(const float & dt);
 
+	// Temp. method to initialize fluid scene
+	void InitializeFluidSource(int x, int y);
+
+	ArrayXs GetDensities() ;
+
+	
+	int             m_N;
+	
 protected:
 	// Convenient grid access
 	//static   double & d(ArrayXs * d, int i, int j) { return (*d)(i, j); } // Density grid
@@ -27,11 +35,13 @@ protected:
 	bool            m_UseProject;
 	double          m_Diff;
 	double          m_Visc;
-	int             m_N;
+	
+	Grid2D<float>  m_d;  // Density of particles
+	Grid2D<float>  m_u;  // u (Hori.) velocity
+	Grid2D<float>  m_v;  // v (Vert.) velocity
+	
 
-	Grid2D<double>  m_d;  // Density of particles
-	Grid2D<double>  m_u;  // u (Hori.) velocity
-	Grid2D<double>  m_v;  // v (Vert.) velocity
+	
 };
 
 #endif // STABLE_FLUIDS_SYS_H

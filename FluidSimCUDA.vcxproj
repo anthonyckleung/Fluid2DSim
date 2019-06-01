@@ -20,8 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\SceneRenderer.cpp" />
     <ClCompile Include="src\ResourceManager.cpp" />
+    <ClCompile Include="src\SceneRenderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Simulation.cpp" />
     <ClCompile Include="src\StableFluidsSys.cpp" />

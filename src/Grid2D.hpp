@@ -1,6 +1,6 @@
 #ifndef GRID2D_H
 #define GRID2D_H
-
+#include <iostream>
 #include "MathUtilities.h"
 
 /**
@@ -10,7 +10,7 @@
 template<typename T>
 class Grid2D {
 public:
-	Grid2D(std::size_t rows, std::size_t cols, T initial_value)
+	Grid2D(std::size_t rows, std::size_t cols, T initial_value = 0)
 		: m_rows(rows), m_cols(cols), m_coordDim(2)
 	{
 		m_data.resize(rows, cols);
@@ -34,6 +34,16 @@ public:
 	}
 
 	// Returns a pointer to the data array m_data via Eigen data() method
+	void displayGrid() {
+		std::cout << m_data << std::endl;
+	}
+
+	ArrayXs grid() {
+		return m_data;
+	}
+
+
+	// Returns the data m_data via Eigen data() method
 	T * data() {
 		return m_data.data();
 	}

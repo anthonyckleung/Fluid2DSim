@@ -45,6 +45,12 @@ void Shader::Compile(const GLchar * vertexSource, const GLchar * fragmentSource,
 	if (geometrySource != nullptr) glDeleteShader(gShader);
 }
 
+void Shader::SetTextureUnit(const GLchar * name, GLint textureUnit, GLboolean useShader)
+{
+	if (useShader) this->Use();
+	glUniform1i(glGetUniformLocation(this->m_ID, name), textureUnit);
+}
+
 void Shader::SetFloat(const GLchar * name, GLfloat value, GLboolean useShader)
 {
 	if (useShader) this->Use();

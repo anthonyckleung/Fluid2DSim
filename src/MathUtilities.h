@@ -1,8 +1,8 @@
 #ifndef __MATH_UTILITIES_H__
 #define __MATH_UTILITIES_H__
 
-#include <Eigen/Core>
-#include <Eigen/LU>
+#include "Eigen/Core"
+#include "Eigen/LU"
 #include "MathDefines.h"
 
 #define CLAMP(x, a, b)  ((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))

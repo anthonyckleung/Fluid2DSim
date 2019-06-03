@@ -17,6 +17,12 @@ public:
 		m_data.fill(initial_value);
 	}
 
+	Grid2D(std::size_t rows, std::size_t cols, ArrayXs &x)
+		: m_rows(rows), m_cols(cols), m_coordDim(2)
+	{
+		this->m_data = x;
+	}
+
 	std::size_t rows() const {
         return m_rows;
     }
@@ -30,6 +36,10 @@ public:
 	}
 
 	void clear() {
+		m_data.setZero();
+	}
+
+	void setZero() {
 		m_data.setZero();
 	}
 
@@ -60,6 +70,17 @@ public:
         return m_data(i, j);
     }
 
+	Grid2D<T> operator+=(const Grid2D<T> &rhs) {
+		m_data += rhs.m_data;
+		return *this;
+	}
+
+	//Grid2D<T> operator+(const Grid2D<T> &lhs, const Grid2D<T> &rhs) {
+	//	ArrayXs addition = lhs.m_data + rhs.m_data;
+
+
+	//	return Grid<T>added(;
+	//}
 
 
 private:

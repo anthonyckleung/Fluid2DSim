@@ -11,31 +11,24 @@
 
 
 const char  * APP_TITLE     = "FluidSim";
-const GLuint  SCREEN_WIDTH  = 400;
-const GLuint  SCREEN_HEIGHT = 400;
+const GLuint  SCREEN_WIDTH  = 200;
+const GLuint  SCREEN_HEIGHT = 200;
 GLFWwindow	* gWindow       = NULL; //pointer to a window
 Simulation    simulation(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 bool		  initOpenGL();
-ArrayXs  x(3, 3);
 
+//Grid2D<float> x(2, 2, 1);
+//Grid2D<float> y(2, 2, 2);
 
-
-// Test out grid template
-//Grid2D<double>  gridtemp = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH);
-//Grid2D<double>  gridtemp2 = Grid2D<double>(SCREEN_HEIGHT, SCREEN_WIDTH);
 
 int main()
 {
-	x << 1, 2, 3,
-		5, 4, 16,
-		7, 8, 9;
-	//std::cout << x(1,2) << std::endl;
-	//std::cout << gridtemp(1,3) << std::endl;
-	//std::cout << gridtemp(1, 3) + gridtemp2(4,2) << std::endl;
-	//gridtemp.clear();
-	//std::cout << gridtemp.data() << std::endl;
-	//std::cout << gridtemp.data() + 1* gridtemp.rows() *gridtemp.cols() << std::endl;
+	//x.displayGrid();
+	//x(0, 1) = 1;
+	//x += y;
+	//std::cout << x.grid().rows() << std::endl;
+	//x.displayGrid();
 	if (!initOpenGL())
 	{
 		std::cerr << "GLFW initialization failed" << std::endl;
@@ -54,14 +47,33 @@ int main()
 	simulation.m_State = SIM_ACTIVE;
 	std::cout << "Simulation Initialized..." << std::endl;
 
+	// DeltaTime variables
+	GLfloat deltaTime = 0.0f;
+	GLfloat lastFrame = 0.0f;
+
+	double lastCheckpoint = glfwGetTime();
+	int renderedFrames = 0;
 	// Render Loop
 	while (!glfwWindowShouldClose(gWindow))
 	{
+		// Calculate delta time
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		// Poll and process events
 		glfwPollEvents();
+		++renderedFrames;
+		if (currentFrame - lastCheckpoint >= 5) {
+			simulation.RenderTime = 5 * 1000.0 / renderedFrames;
+			renderedFrames = 0;
+			lastCheckpoint = currentFrame;
+		}
+
+		// Update Simulation state
+		simulation.Update(0.2f);
 
 		// Clear the screen (color and depth buffers)
-		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		simulation.Render();
 
@@ -69,7 +81,6 @@ int main()
 	}
 	// Delete all resources as loaded using the resource manager
 	ResourceManager::Clear();
-
 
 	glfwTerminate();//Shut down GLFW
 

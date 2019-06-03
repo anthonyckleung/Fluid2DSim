@@ -20,6 +20,9 @@ public:
 	// Binds the texture as the current active GL_TEXTURE_2D texture object
 	void Bind() const;
 
+	// Update Texture
+	void Update();
+
 	// Holds the ID of the texture object, used for all texture operations to reference to this particlar texture
 	//std::array<GLuint, textures> m_IDs;
 	GLuint   m_ID;

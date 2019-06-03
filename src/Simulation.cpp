@@ -1,5 +1,4 @@
 #include <iostream>
-#include <memory>
 #include "ResourceManager.h"
 #include "SceneRenderer.h"
 #include "StableFluidsSys.h"
@@ -8,7 +7,8 @@
 SceneRenderer *Renderer;
 
 Simulation::Simulation(int width, int height)
-	: m_State(SIM_ACTIVE), m_Width(width), m_Height(height)
+	: m_State(SIM_ACTIVE), m_Width(width), m_Height(height),
+	  fluidsys(std::make_shared<StableFluidsSys>(width, height))
 {
 }
 
@@ -19,8 +19,6 @@ Simulation::~Simulation()
 
 void Simulation::Initialize()
 {
-	std::shared_ptr<StableFluidsSys> fluidsys(nullptr);
-	fluidsys = std::make_shared<StableFluidsSys>(this->m_Height, this->m_Width);
 
 	// Load shaders
 	ResourceManager::LoadShader("src/shaders/particle.vert", "src/shaders/particle.frag", nullptr, "scene");
@@ -45,6 +43,8 @@ void Simulation::ProcessInput()
 void Simulation::Update(GLfloat dt)
 {
 	// Updates the particle texture
+	fluidsys->StepSystem(dt);
+	ResourceManager::GetFluidTexture("fluid").Update();
 }
 
 void Simulation::Render()
@@ -52,5 +52,5 @@ void Simulation::Render()
 	/*Renderer->DrawScene(ResourceManager::GetTexture("face"), glm::vec2(0, 0), 
 		                   glm::vec2(400, 400), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));*/
 	Renderer->DrawScene(ResourceManager::GetFluidTexture("fluid"), glm::vec2(0, 0), 
-		                   glm::vec2(400, 400), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		                   glm::vec2(m_Width, m_Height), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 }

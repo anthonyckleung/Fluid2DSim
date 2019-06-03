@@ -1,8 +1,10 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
-
+#include <memory>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+
+class StableFluidsSys;
 
 enum SimState {
 	SIM_ACTIVE,
@@ -18,8 +20,9 @@ public:
 
 	SimState   m_State;
 
-	// Initialize simulation resources
-	void Initialize();
+	float RenderTime = -1;
+	
+	void Initialize();              // Initialize simulation resources
 	void ProcessInput();
 	void Update(GLfloat dt);
 	void Render();
@@ -27,6 +30,7 @@ public:
 private:
 	int        m_Width, m_Height;
 	GLfloat	   m_dt;               // Time step
+	std::shared_ptr<StableFluidsSys> fluidsys;
 };
 
 #endif // SIMULATION_H

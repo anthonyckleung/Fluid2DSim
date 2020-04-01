@@ -23,4 +23,4 @@ Perhaps a more modern approach to parallelization is CUDA C - an API that I have
 
 ## References
 <a id="1">[1]</a>
-J. Stam, Stable Fluids, ACM SIGGRAPH 99, 1999.
+J. Stam, "Stable Fluids", In SIGGRAPH 99 Conference Proceedings, Annual Conference Series, August 1999, 121-128.

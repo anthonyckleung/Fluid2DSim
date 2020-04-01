@@ -1,3 +1,5 @@
+# Fluid Simulator 
+
 Considerable effort is needed to describe the many aspects of fluid motion.
 Even more effort is needed for animating fluids in real-time.
 

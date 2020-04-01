@@ -19,7 +19,7 @@ Program was originally developed on Visual Studio v15.9 and uses the following l
 (Left to right): A fluid in a rectangular box flows out from an invisible tube from top to bottom, hits a boundary and circulates around. 
 
 ## Next steps?
-Perhaps a more modern approach to parallelization is CUDA C - an API that I have been interested in learning. It might be worth trying to see how it compares with OpenMP in terms of performance.
+Perhaps a more modern approach to parallelization is CUDA C - an API that I have been interested in learning. It might be worth trying to see how it compares with OpenMP in terms of performance. Another obvious step to take is to extend the capability to simulate 3D fluids!.
 
 ## References
 <a id="1">[1]</a>

@@ -4,31 +4,22 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "Grid2D.hpp"
+//#include "Grid2D.hpp"
 #include "Simulation.h"
 #include "ResourceManager.h"
 
 
 
-const char  * APP_TITLE     = "FluidSim";
+const char  * APP_TITLE     = "FluidSimStagGrid";
 const GLuint  SCREEN_WIDTH  = 200;
 const GLuint  SCREEN_HEIGHT = 200;
 GLFWwindow	* gWindow       = NULL; //pointer to a window
-Simulation    simulation(SCREEN_WIDTH, SCREEN_HEIGHT);
+Simulation    simulation(0.5*(SCREEN_WIDTH), 0.5*(SCREEN_HEIGHT));
 
 bool		  initOpenGL();
 
-//Grid2D<float> x(2, 2, 1);
-//Grid2D<float> y(2, 2, 2);
-
-
 int main()
 {
-	//x.displayGrid();
-	//x(0, 1) = 1;
-	//x += y;
-	//std::cout << x.grid().rows() << std::endl;
-	//x.displayGrid();
 	if (!initOpenGL())
 	{
 		std::cerr << "GLFW initialization failed" << std::endl;
@@ -70,7 +61,7 @@ int main()
 		}
 
 		// Update Simulation state
-		simulation.Update(0.2f);
+		simulation.Update(0.1f);
 
 		// Clear the screen (color and depth buffers)
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

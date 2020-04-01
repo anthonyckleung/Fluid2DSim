@@ -1,6 +1,6 @@
 #include <iostream>
 #include <assert.h>
-
+#include <omp.h>
 #include "StableFluidsSys.h"
 
 
@@ -14,10 +14,7 @@ StableFluidsSys::StableFluidsSys(int & rows, int & cols,
 	m_dSource(rows, cols),
 	m_uFlowSource(rows, cols - 1),
 	m_vFlowSource(rows - 1, cols)
-	//m_uAfterDiffusion(rows, cols -1, 0.5f),
-	//m_uAfterAdvect(rows, cols-1, 0.f),
-	//m_vAfterDiffusion(rows-1, cols, 0.f),
-	//m_vAfterAdvect(rows-1, cols, 0.f)
+
 {
 	assert(rows == cols);
 	m_N            = rows;
@@ -28,7 +25,9 @@ StableFluidsSys::StableFluidsSys(int & rows, int & cols,
 
 	
 	int n = rows * 0.5;
-	InitializeFluidSource(n, n); // Temporary
+	int row = 0;
+	int col = rows * 0.5;
+	InitializeFluidSource(col, row); // Temporary
 
 }
 
@@ -44,56 +43,46 @@ void StableFluidsSys::InitializeFluidSource(int &x, int &y)
 	//double outVelocity = 0.f;
 	int N = GetGridLength();
 
-	int left   = x - N * 0.1;
-	int right  = x + N * 0.1;
-	int top    = y - N * 0.1;
-	int bottom = y + N * 0.1;
+	int left   = x - N * 0.02;
+	int right  = x + N * 0.02;
+	int top    = y - N * 0.02;
+	int bottom = y + N * 0.25;
 
-	for (int i = top; i <= bottom ; ++i)
+	for (int i = y; i <= bottom ; ++i)
 	{
 		//if (i < 0 || i > m_N) { continue; }
 		for (int j = left; j <= right ;  ++j)
 		{
 			//if (j < 0 || j > m_N) { continue; }
-			this->m_d(i, j) = 1.f;
+			this->m_d(i, j) = 1.1f;
 		}
 	}
 
-	// Horizontal velocities
-	/*for (int i = 0; i < N; i++)
+	left = x - N * 0.08;
+	right = x + N * 0.08;
+	top = y - N * 0.4;
+	bottom = y + N * 0.8;
+
+	m_vFlowSource.fill(0.0002);
+
+	for (int i = y; i <= bottom; ++i)
 	{
-		for (int j = 0; j < N-1; j++)
+		//if (i < 0 || i > m_N) { continue; }
+		for (int j = left; j <= right; ++j)
 		{
-			if ((i < N*0.5)) { m_uFlowSource(i, j) = 0.01; }
-			else if (i > N*0.5){ m_uFlowSource(i, j) = -0.02; }
-			else if (i == N * 0.5) { m_uFlowSource(i, j) = 0.02;}
+			//if (j < 0 || j > m_N) { continue; }
+			//if (i < 0.5*N) { this->m_vFlowSource(i, j) = -0.01f; }
+			//else if (i > 0.5*N) { this->m_vFlowSource(i, j) = -0.01f; }
+			this->m_vFlowSource(i, j) = i*0.0003f;
 		}
 	}
 
-	for (int i = 0; i < N-1; i++)
-	{
-		for (int j = 0; j < N; j++)
-		{
-			if ((j < N*0.5)) { m_vFlowSource(i, j) = -0.02; }
-			else if (j > N*0.5) { m_vFlowSource(i, j) = 0.01; }
-			else if (i == 0.5*N) { m_vFlowSource(i, j) = 0.01; m_uFlowSource(i, j) = 0; }
-		}
-	}*/
 
-	for (int i = 0; i < N - 1; i++)
-	{
-		for (int j = left+10; j <= right-10; j++)
-		{
-			m_vFlowSource(i, j) = -0.02;
-			//if (j == N * 0.5) { m_vFlowSource(i, j) = -0.04; }
-		}
-	}
-
-	m_uFlowSource.fill(0.0f);
+	//m_uFlowSource.fill(0.0f);
 	//m_vFlowSource.fill(0.01f);
 	m_dSource.fill(0.f);
-
-	m_dPrevious = m_d;
+	//m_dSource = m_d;
+	m_dPrevious.setZero();
 	m_u= m_uFlowSource;
 	m_v= m_vFlowSource;
 	m_uPrevious.setZero();
@@ -109,13 +98,13 @@ void StableFluidsSys::SWAP(ArrayXs *& x1, ArrayXs *& x2)
 
 void StableFluidsSys::SetBndCondns(int N, int b, ArrayXs * x)
 {
-	// b: 
+	// Continuity boundary conditions
 	for (int i = 1; i <= N; i++)
 	{
 		(*x)(0  , i  ) = b == 1 ? -(*x)(1, i) : (*x)(1, i);
-		(*x)(N+1, i  ) = b == 1 ? -(*x)(N, i) : (*x)(N, i);
+		(*x)(N, i  ) = b == 1 ? -(*x)(N, i) : (*x)(N, i);
 		(*x)(i  , 0  ) = b == 2 ? -(*x)(i, 1) : (*x)(i, 1);
-		(*x)(0  , N+1) = b == 2 ? -(*x)(1, N) : (*x)(1, N);
+		(*x)(0  , N) = b == 2 ? -(*x)(1, N) : (*x)(1, N);
 	}
 	(*x)(0  , 0  ) = 0.5 * ((*x)(1, 0  ) + (*x)(0  , 1));
 	(*x)(0  , N+1) = 0.5 * ((*x)(1, N+1) + (*x)(0  , 1));
@@ -123,24 +112,42 @@ void StableFluidsSys::SetBndCondns(int N, int b, ArrayXs * x)
 	(*x)(N+1, N+1) = 0.5 * ((*x)(N, N+1) + (*x)(N+1, 1));
 }
 
+void StableFluidsSys::SetBndCondnsU(int N, ArrayXs * u)
+{
+	// Boundary Conditions
+	for (int i = 1; i <= N; i++)
+	{
+		(*u)(i, 0) = -(*u)(i, 1);       // Left-most column
+		(*u)(i, N) = -(*u)(i, N - 1);  // Right-most column
+	}
+	// Corners
+	(*u)(0, 0) = 0.5 * ((*u)(1, 0) + (*u)(0, 1));
+	(*u)(0, N - 1) = 0.5 * ((*u)(1, N - 1) + (*u)(0, N - 2));
+	(*u)(N, 0) = 0.5 * ((*u)(N - 1, 0) + (*u)(N, 1));
+	(*u)(N, N - 1) = 0.5 * ((*u)(N - 1, N - 1) + (*u)(N, N - 2));
+}
+
+void StableFluidsSys::SetBndCondnsV(int N, ArrayXs * v)
+{
+	for (int j = 1; j <= N; j++)
+	{
+		(*v)(0, j) = -(*v)(1, j);      // Top
+		(*v)(N, j) = -(*v)(N - 1, j);  // Bottom 
+	}
+
+	(*v)(0, 0) = 0.5 * ((*v)(1, 0) + (*v)(0, 1));
+	(*v)(0, N) = 0.5 * ((*v)(1, N) + (*v)(0, N - 1));
+	(*v)(N - 1, 0) = 0.5 * ((*v)(N - 2, 0) + (*v)(N - 1, 1));
+	(*v)(N - 1, N) = 0.5 * ((*v)(N - 2, N) + (*v)(N - 1, N));
+}
+
 
 void StableFluidsSys::StepSystem(const float & dt)
-{
-	//ArrayXs * u = &m_u, *u0 = &m_uFlowSource;
-	//ArrayXs * v = &m_v, *v0 = &m_vFlowSource;
-	//ArrayXs * d = &m_d, *d0 = &m_dSource;
-	//Grid2Ds * u_AfterDiffuse = &m_uAfterDiffusion;
-	//Grid2Ds * v_AfterDiffuse = &m_vAfterDiffusion;
-	
+{	
 	int N = GetPhysicalLength();
-
-	//std::cout << (*u)(m_N*0.5, m_N*0.5) << std::endl;
 	
 	VelocityStep(N, &m_u, &m_v, &m_uPrevious, &m_vPrevious, dt);
-	
-	//std::cout << (m_v)(m_N*0.5, m_N*0.5) << std::endl;
 	DensityStep(N, &m_d, &m_dPrevious, &m_u, &m_v, m_Diff, dt);
-	//std::cout << m_d(m_N*0.5, m_N*0.5)  << std::endl;
 }
 
 
@@ -158,6 +165,16 @@ ArrayXs const StableFluidsSys::GetDensities()
 {
 	auto &d = m_d;
 	return d;
+}
+
+const ArrayXs StableFluidsSys::GetHorizontalVelocities()
+{
+	return m_u;
+}
+
+const ArrayXs StableFluidsSys::GetVerticalVelocities()
+{
+	return m_v;
 }
 
 float StableFluidsSys::interpolateD(ArrayXs * d, float i, float j)
@@ -192,7 +209,6 @@ float StableFluidsSys::interpolateU(ArrayXs * u, float i, float j)
 	float ufinal = (1 - t)*u1 + t * u2;
 
 	return ufinal;
-	//return 0.f;
 }
 
 float StableFluidsSys::interpolateV(ArrayXs * v, float i, float j)
@@ -216,8 +232,8 @@ void StableFluidsSys::VelocityStep(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0
 	AddSource(N, u, &m_uFlowSource, dt);
 	AddSource(N, v, &m_vFlowSource, dt);
 
-	SWAP(u0, u);   DiffuseU(N, u, u0, m_Diff, dt);
-	SWAP(v0, v);   DiffuseV(N, v, v0, m_Diff, dt);
+	SWAP(u0, u);   DiffuseU(N, u, u0, m_Visc, dt);
+	SWAP(v0, v);   DiffuseV(N, v, v0, m_Visc, dt);
 	Project(N, u, v, u0, v0);
 
 	SWAP(u0, u);   AdvectU(N, u, u0, u0, v0, dt);
@@ -242,10 +258,10 @@ void StableFluidsSys::DiffuseD(int N, ArrayXs * x, ArrayXs * x0, float diff, flo
 {
 	scalar a = diff * dt * N * N;
 	*x = *x0;
-	//cout << "Compute DiffuseD..." << endl;
-	// cout << "a = " << a << endl;
-	for (int k = 0; k < 15; k++)
+
+	for (int k = 0; k < 4; k++)
 	{
+	#pragma omp parallel for
 		for (int i = 1; i <= N; i++)
 		{
 			for (int j = 1; j <= N; j++) // IMPORTANT: DO NOT MODIFY THE LOOP ORDER
@@ -259,27 +275,31 @@ void StableFluidsSys::DiffuseD(int N, ArrayXs * x, ArrayXs * x0, float diff, flo
 
 void StableFluidsSys::DiffuseU(int N, ArrayXs* x, ArrayXs* x0, float diff, float dt)
 {
-	//assert((*x0 == *x0).all());
+	assert((*x0 == *x0).all());
 
 	float a = diff * dt * N * N;
 	*x = *x0;
 
-	for (int k = 0; k < 15; k++)
+	for (int k = 0; k < 4; k++)
 	{
+		#pragma omp parallel for
 		for (int i = 1; i <= N; i++)
 		{
 			for (int j = 0; j <= N; j++) // IMPORTANT: LOOP ORDER
 			{
 				// Do diffuse for ([1, N], [0, N-1]), 
 				// note the case when (j == 0) or (j == N) need special treatment
-				if (j == 0) {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + (*x)(i, j + 1))) / (1.0 + 3.0*a);
+				if (j == 0) {// Left side
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + 
+						                             (*x)(i, j + 1))) / (1.0 + 3.0*a);
 				}
-				else if (j == N) {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + (*x)(i, j - 1))) / (1.0 + 3.0*a);
+				else if (j == N) { // Right side
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + 
+						                             (*x)(i, j - 1))) / (1.0 + 3.0*a);
 				}
 				else {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 4.0*a);
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + 
+						                            (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 4.0*a);
 				}
 			}
 		}
@@ -293,20 +313,24 @@ void StableFluidsSys::DiffuseV(int N, ArrayXs * x, ArrayXs * x0, float diff, flo
 	scalar a = diff * dt * N * N;
 	*x = *x0;
 
-	for (int k = 0; k < 15; ++k)
+	for (int k = 0; k < 4; ++k)
 	{
+		#pragma omp parallel for
 		for (int i = 0; i <= N; ++i)
 		{
 			for (int j = 1; j <= N; ++j) // IMPORTANT: LOOP ORDER
 			{
 				if (i == 0) {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 3.0*a);
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i, j + 1) + 
+						                             (*x)(i, j - 1))) / (1.0 + 3.0*a);
 				}
 				else if (i == N) {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i - 1, j) + (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 3.0*a);
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i - 1, j) + (*x)(i, j + 1) + 
+						                             (*x)(i, j - 1))) / (1.0 + 3.0*a);
 				}
 				else {
-					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 4.0*a);
+					(*x)(i, j) = ((*x0)(i, j) + a * ((*x)(i + 1, j) + (*x)(i - 1, j) + 
+						                             (*x)(i, j + 1) + (*x)(i, j - 1))) / (1.0 + 4.0*a);
 				}
 			}
 		}
@@ -319,6 +343,7 @@ void StableFluidsSys::AdvectD(int N, ArrayXs * x, ArrayXs * x0, ArrayXs * u, Arr
 	float gv, gu;
 
 	// Advect for ([1, N], [1, N])
+    #pragma omp parallel for
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
@@ -339,6 +364,7 @@ void StableFluidsSys::AdvectU(int N, ArrayXs * x, ArrayXs * x0, ArrayXs * u, Arr
 	float dt0 = dt * N;
 	float gv, gu;
 	//cout << "Compute advectU... " << endl;
+    #pragma omp parallel for
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 0; j <= N; j++)
@@ -362,6 +388,7 @@ void StableFluidsSys::AdvectV(int N, ArrayXs * x, ArrayXs * x0, ArrayXs * u, Arr
 	//cout << "Compute advectV... " << endl;
 	float dt0 = dt * N;
 	float gv, gu;
+    #pragma omp parallel for
 	for (int i = 0; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
@@ -389,10 +416,10 @@ void StableFluidsSys::Project(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0, Arr
 
 	// Set solid boundary conditions, 0 the most top and bottom row / left and right column of u0, v0
 	// i.e., set the velocities that live normal to a solid cell to zero
-	for (int i = 0; i <= N + 1; i++) {// u0 cells (green dots in handout)
-		(*u0)(i, 0) = 0;   //left column
-		(*u0)(i, N) = 0;   //right column
-	}
+	//for (int i = 0; i <= N + 1; i++) {// u0 cells (green dots in handout)
+	//	(*u0)(i, 0) = 0;   //left column
+	//	(*u0)(i, N) = 0;   //right column
+	//}
 	//for (int j = 0; j <= N; j++) {
 	//	(*u0)(0, j) = 0;  //top row
 	//	(*u0)(N + 1, j) = 0;   //bottom row
@@ -402,13 +429,14 @@ void StableFluidsSys::Project(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0, Arr
 	//	(*v0)(i, 0) = 0;   //left column
 	//	(*v0)(i, N + 1) = 0;   //right column
 	//}
-	for (int j = 0; j <= N + 1; j++) {
-		(*v0)(0, j) = 0;  //top row
-		(*v0)(N, j) = 0;   //bottom row
-	}
-	//SetBndCondns(N, 0, &div); SetBndCondns(N, 0, &p);
+	//for (int j = 0; j <= N + 1; j++) {
+	//	(*v0)(0, j) = 0;  //top row
+	//	(*v0)(N, j) = 0;   //bottom row
+	//}
+	SetBndCondns(N, 0, &div); SetBndCondns(N, 0, &p);
 
 	// Compute divergence of the velocity field, note the divergence field is available from ([1, N], [1, N])
+    #pragma omp parallel for
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
@@ -418,8 +446,9 @@ void StableFluidsSys::Project(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0, Arr
 	}
 
 	// Solve for pressure inside the region ([1, N], [1, N])    
-	for (int k = 0; k < 15; k++)
+	for (int k = 0; k < 10; k++)
 	{
+		#pragma omp parallel for
 		for (int i = 1; i <= N; i++)
 		{
 			for (int j = 1; j <= N; j++) // IMPORTANT: DO NOT MODIFY THE LOOP ORDER
@@ -450,23 +479,11 @@ void StableFluidsSys::Project(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0, Arr
 		}
 	}
 
-	//for (int k = 0; k < 10; k++)
-	//{
-	//	for (int i = 1; i <= N; i++)
-	//	{
-	//		for (int j = 1; j <= N; j++) // IMPORTANT: DO NOT MODIFY THE LOOP ORDER
-	//		{
-	//			p(i, j) = (div(i, j)*h*h + p(i - 1, j) + p(i + 1, j) +
-	//				                   p(i, j - 1) + p(i, j + 1)) / 4;
-	//		}
-	//	}
-	//	SetBndCondns(N, 0, &p);
-	//}
-
 	(*u) = (*u0);
 	(*v) = (*v0);
 
 	// Apply pressure to correct velocities ([1, N], [1, N)) for u, ([1, N), [1, N]) for v  
+    #pragma omp parallel for
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j < N; j++)
@@ -476,21 +493,9 @@ void StableFluidsSys::Project(int N, ArrayXs * u, ArrayXs * v, ArrayXs * u0, Arr
 			(*v)(j, i) -= (p(j + 1, i) - p(j, i)) / (h);
 		}
 	}
-	//std::cout << (*u)(0, 0) << std::endl;
-
-	// Boundary Conditions
-	for (int i = 1; i <= N; i++)
-	{
-		(*u)(0, i) =  -(*u)(1, i) ;
-		(*u)(N + 1, i) =  -(*u)(N, i);
-	}
-
-	for (int i = 1; i <= N; i++)
-	{
-		(*v)(i, 0) = -(*v)(i, 1) ;
-		(*v)(0, N + 1) = -(*v)(1, N);
-	}
 	
+	SetBndCondnsU(N, u);
+	SetBndCondnsV(N, v);
 
 }
 

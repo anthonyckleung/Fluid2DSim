@@ -62,8 +62,8 @@
     <ClInclude Include="src\MathUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Grid2D.hpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\FluidSolver.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,16 +1,19 @@
 #ifndef STABLE_FLUIDS_SYS_H
 #define STABLE_FLUIDS_SYS_H
 
-//#include "MathUtilities.h"
+#include "MathUtilities.h"
 
-#include "Grid2D.hpp"
+enum SolverType {
+	CPU,
+	OMP,
+	CUDA
+};
 
-typedef Grid2D<float> Grid2Ds;
 class StableFluidsSys
 {
 public:
 	StableFluidsSys(int & rows, int & cols,
-		            const float& diff = 0.0008, const float& visc = 0.00000001,
+		            const float& diff = 0.0000, const float& visc = 0.0000,
 		            bool use_advect = true, bool use_project = true);
 
 	~StableFluidsSys();
@@ -35,6 +38,8 @@ protected:
 	void SWAP(ArrayXs *& x1, ArrayXs *& x2);
 
 	void SetBndCondns(int N, int b, ArrayXs * x);
+	void SetBndCondnsU(int N, ArrayXs * x);
+	void SetBndCondnsV(int N, ArrayXs * x);
 
 	// Interpolator
 	float interpolateD(ArrayXs * d, float i, float j);
@@ -71,10 +76,10 @@ protected:
 	ArrayXs   m_uFlowSource;
 	ArrayXs   m_vFlowSource;
 
-	ArrayXs   m_uAfterDiffusion;
+	/*ArrayXs   m_uAfterDiffusion;
 	ArrayXs   m_vAfterDiffusion;
 	ArrayXs   m_uAfterAdvect;
-	ArrayXs   m_vAfterAdvect;
+	ArrayXs   m_vAfterAdvect;*/
 
 	// Parameters
 	int       m_N;           // Length of grid
